@@ -1,0 +1,230 @@
+{
+  "firewall": {
+    "name": "edge-gateway-fw-prod",
+    "environment": "production",
+
+    "default_policy": {
+      "ingress": "deny",
+      "egress": "deny",
+      "interzone": "deny"
+    },
+
+    "zones": [
+      { "name": "internet", "type": "untrusted" },
+      { "name": "dmz", "type": "semi-trusted" },
+      { "name": "internal", "type": "trusted" },
+      { "name": "vpn", "type": "trusted" }
+    ],
+
+    "interfaces": [
+      {
+        "name": "eth0",
+        "zone": "internet",
+        "ip": "203.0.113.10/29"
+      },
+      {
+        "name": "eth1",
+        "zone": "dmz",
+        "ip": "10.10.10.1/24"
+      },
+      {
+        "name": "eth2",
+        "zone": "internal",
+        "ip": "10.20.0.1/16"
+      },
+      {
+        "name": "tun0",
+        "zone": "vpn",
+        "ip": "10.99.0.1/24"
+      }
+    ]
+  },
+
+  "objects": {
+    "address_groups": {
+      "admins_ips": [
+        "198.51.100.10/32",
+        "198.51.100.11/32"
+      ],
+      "monitoring_servers": [
+        "10.20.50.10/32"
+      ],
+      "dmz_web_servers": [
+        "10.10.10.10/32",
+        "10.10.10.11/32"
+      ]
+    },
+
+    "service_groups": {
+      "web_services": [
+        "tcp/80",
+        "tcp/443"
+      ],
+      "admin_services": [
+        "tcp/22",
+        "tcp/3389"
+      ],
+      "vpn_services": [
+        "udp/500",
+        "udp/4500",
+        "esp"
+      ]
+    }
+  },
+
+  "nat": {
+    "snat": [
+      {
+        "name": "snat-internal-to-internet",
+        "source": "10.0.0.0/8",
+        "destination": "any",
+        "translated_ip": "203.0.113.10"
+      }
+    ],
+
+    "dnat": [
+      {
+        "name": "dnat-web-https",
+        "protocol": "tcp",
+        "public_ip": "203.0.113.10",
+        "public_port": 443,
+        "private_ip": "10.10.10.10",
+        "private_port": 443
+      }
+    ]
+  },
+
+  "rules": [
+    {
+      "id": 100,
+      "name": "allow-https-to-web",
+      "source_zone": "internet",
+      "destination_zone": "dmz",
+      "source_ip": "any",
+      "destination_ip": "dmz_web_servers",
+      "service": "tcp/443",
+      "action": "allow",
+      "log": true
+    },
+    {
+      "id": 110,
+      "name": "allow-admin-ssh",
+      "source_zone": "internet",
+      "destination_zone": "internal",
+      "source_ip": "admins_ips",
+      "destination_ip": "any",
+      "service": "tcp/22",
+      "action": "allow",
+      "log": true
+    },
+    {
+      "id": 200,
+      "name": "allow-dns-out",
+      "source_zone": "internal",
+      "destination_zone": "internet",
+      "source_ip": "any",
+      "destination_ip": "any",
+      "service": "udp/53",
+      "action": "allow",
+      "log": true
+    },
+    {
+      "id": 210,
+      "name": "allow-https-out",
+      "source_zone": "internal",
+      "destination_zone": "internet",
+      "source_ip": "any",
+      "destination_ip": "any",
+      "service": "tcp/443",
+      "action": "allow",
+      "log": true
+    },
+    {
+      "id": 300,
+      "name": "allow-monitoring",
+      "source_zone": "internal",
+      "destination_zone": "internal",
+      "source_ip": "monitoring_servers",
+      "destination_ip": "any",
+      "service": "any",
+      "action": "allow",
+      "log": false
+    },
+    {
+      "id": 400,
+      "name": "allow-vpn-traffic",
+      "source_zone": "vpn",
+      "destination_zone": "internal",
+      "source_ip": "10.99.0.0/24",
+      "destination_ip": "10.20.0.0/16",
+      "service": "any",
+      "action": "allow",
+      "log": true
+    },
+    {
+      "id": 999,
+      "name": "deny-all",
+      "source_zone": "any",
+      "destination_zone": "any",
+      "source_ip": "any",
+      "destination_ip": "any",
+      "service": "any",
+      "action": "deny",
+      "log": true
+    }
+  ],
+
+  "vpn": {
+    "ipsec": [
+      {
+        "name": "site-to-site-dc",
+        "peer_ip": "198.51.100.200",
+        "pre_shared_key": "REDACTED",
+        "ike": {
+          "version": "v2",
+          "encryption": "aes256",
+          "integrity": "sha256",
+          "dh_group": 14
+        },
+        "ipsec": {
+          "encryption": "aes256",
+          "integrity": "sha256",
+          "pfs": true
+        },
+        "local_subnets": [
+          "10.20.0.0/16"
+        ],
+        "remote_subnets": [
+          "192.168.100.0/24"
+        ]
+      }
+    ]
+  },
+
+  "logging": {
+    "firewall": {
+      "allow": true,
+      "deny": true
+    },
+    "nat": true,
+    "vpn": true,
+    "destination": {
+      "type": "siem",
+      "endpoint": "logs.siem.local"
+    }
+  },
+
+  "security_features": {
+    "ids_ips": {
+      "enabled": true,
+      "mode": "detect"
+    },
+    "anti_ddos": {
+      "enabled": true,
+      "threshold_pps": 100000
+    },
+    "geo_blocking": {
+      "deny_countries": ["ES"]
+    }
+  }
+}
