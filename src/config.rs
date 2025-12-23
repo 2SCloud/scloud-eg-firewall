@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/// =======================
-/// ROOT CONFIG
-/// =======================
+//=======================
+// ROOT CONFIG
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -15,9 +15,9 @@ pub struct Config {
     pub security_features: Option<ConfigSecurityFeatures>,
 }
 
-/// =======================
-/// FIREWALL
-/// =======================
+//=======================
+// FIREWALL
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigFirewall {
@@ -50,9 +50,9 @@ pub struct ConfigInterface {
     pub ip: String,
 }
 
-/// =======================
-/// OBJECTS
-/// =======================
+//=======================
+// OBJECTS
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigObjects {
@@ -74,9 +74,9 @@ pub struct ConfigServiceGroups {
     pub vpn_services: Vec<String>,
 }
 
-/// =======================
-/// NAT
-/// =======================
+//=======================
+// NAT
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigNat {
@@ -102,9 +102,9 @@ pub struct ConfigDnat {
     pub private_port: u16,
 }
 
-/// =======================
-/// RULES
-/// =======================
+//=======================
+// RULES
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigRule {
@@ -119,9 +119,9 @@ pub struct ConfigRule {
     pub log: bool,
 }
 
-/// =======================
-/// VPN
-/// =======================
+//=======================
+// VPN
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigVpn {
@@ -154,9 +154,9 @@ pub struct ConfigIpsec {
     pub pfs: bool,
 }
 
-/// =======================
-/// LOGGING
-/// =======================
+//=======================
+// LOGGING
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigLogging {
@@ -179,9 +179,9 @@ pub struct ConfigLogDestination {
     pub endpoint: String,
 }
 
-/// =======================
-/// SECURITY FEATURES
-/// =======================
+//=======================
+// SECURITY FEATURES
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConfigSecurityFeatures {
@@ -207,9 +207,9 @@ pub struct ConfigGeoBlocking {
     pub deny_countries: Vec<String>,
 }
 
-/// =======================
-/// ENUMS
-/// =======================
+//=======================
+// ENUMS
+//=======================
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
